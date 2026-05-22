@@ -232,3 +232,5 @@ def get_available_methods():
 
 
 load_settings()
+
+print(1245)
