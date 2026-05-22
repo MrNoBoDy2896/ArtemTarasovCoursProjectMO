@@ -1,0 +1,11 @@
+{
+    'alpha': 1.0,
+    'beta': 1.0,
+    'gamma': 3.14,
+    'T1': 9,
+    'T2': 10,
+    "p1": 1,
+    "p2": 1,
+    'price_per_kg': 100,
+    'optimization_method': 'SLSQP'
+}
