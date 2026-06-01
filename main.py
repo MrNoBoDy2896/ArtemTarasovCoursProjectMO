@@ -103,7 +103,11 @@ class MainApplication:
         self.root.title(
             f"Оптимизация теплообменника - {username} ({'Администратор' if role == 'admin' else 'Пользователь'})")
         self.root.geometry("1200x900")
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
 
+        self.style.configure("TFrame", background="blue")#**********
+        self.BG_color = "#----"
         self.center_window()
 
         self.setup_menu()
@@ -208,6 +212,7 @@ class MainApplication:
         dialog.title("Выбор варианта")
         dialog.geometry("400x450")
         dialog.resizable(False, False)
+        #window.config(bg='#FFFAFA')****************
 
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
@@ -304,7 +309,7 @@ class MainApplication:
                 variant_info = "\n✅ ВЫБРАН ВАРИАНТ 11 - все данные доступны\n"
             else:
                 variant_info = f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} - недостаточно данных для расчета\n"
-
+        #task_frame.config(bg='#FFFAFA')*********************
         description = f"""
         Формализованное описание задачи оптимизации процесса фильтрования
         ══════════════════════════════════════════════════════════════════════
