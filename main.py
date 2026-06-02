@@ -99,17 +99,24 @@ class MainApplication:
         self.params = get_parameters()
         self.current_variant = 11
 
+
         self.root = tk.Tk()
         self.root.title(
             f"Оптимизация теплообменника - {username} ({'Администратор' if role == 'admin' else 'Пользователь'})")
         self.root.geometry("1200x900")
+        self.root.configure(bg="#f4f7fb")
         self.style = ttk.Style()
         self.style.theme_use('clam')
 
-        self.style.configure("TFrame", background="blue")#**********
-        self.BG_color = "#----"
-        self.center_window()
+        self.BG_color = "#f4f7fb"
+        self.CARD_color = "#ffffff"
+        self.ACCENT_color = "#2f6fed"
 
+        self.root.configure(bg=self.BG_color)
+        self.style.configure("TFrame", background=self.BG_color)
+        self.style.configure("Card.TFrame", background=self.CARD_color)
+
+        self.center_window()
         self.setup_menu()
         self.setup_ui()
 
@@ -294,69 +301,96 @@ class MainApplication:
         self.create_task_tab()
 
     def create_task_tab(self):
-        task_frame = ttk.Frame(self.notebook)
+        task_frame = tk.Frame(self.notebook, bg="#f4f7fb")
         self.notebook.add(task_frame, text="Описание задачи")
 
-        text_widget = tk.Text(task_frame, wrap=tk.WORD, font=("Segoe UI", 11), padx=20, pady=20)
-        text_widget.pack(fill=tk.BOTH, expand=True)
+        text_widget = tk.Text(
+            task_frame,
+            wrap=tk.WORD,
+            font=("Segoe UI", 11),
+            padx=25,
+            pady=25,
+            bg="#ffffff",
+            fg="#1f2937",
+            relief="solid",
+            bd=1,
+            highlightthickness=0
+        )
+        text_widget.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
         params = get_parameters()
 
-        # Добавляем информацию о выбранном варианте
         variant_info = ""
         if self.role == 'admin':
-            if self.current_variant == 2:
-                variant_info = "\n✅ ВЫБРАН ВАРИАНТ 11 - все данные доступны\n"
+            if self.current_variant == 11:
+                variant_info = "\n✅ ВЫБРАН ВАРИАНТ 11 — все данные доступны\n"
             else:
-                variant_info = f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} - недостаточно данных для расчета\n"
-        #task_frame.config(bg='#FFFAFA')*********************
+                variant_info = (
+                    f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} — "
+                    "недостаточно данных для расчета\n"
+                )
+
         description = f"""
-        Формализованное описание задачи оптимизации процесса фильтрования
-        ══════════════════════════════════════════════════════════════════════
+    ФОРМАЛИЗОВАННОЕ ОПИСАНИЕ ЗАДАЧИ ОПТИМИЗАЦИИ ПРОЦЕССА ФИЛЬТРОВАНИЯ
+    ══════════════════════════════════════════════════════════════════
 
-        Целевая функция:
-        V(T1, T2) = {params['alpha']} * (T1 - {params['beta']} * 1) * cos({params['gamma']} * 1 * sqrt(T1² + T2²))
+    {variant_info}
 
-        Себестоимость за смену:
-        C(T1, T2) = 8 * 100 * V(T1, T2)
+    Целевая функция:
 
-        где:
-        • T1 — температура на первой перегородке (°C)
-        • T2 — температура на второй перегородке (°C)
-        • V — объемный расход фильтрата (м³/ч)
-        • C — себестоимость фильтрата за 8-часовую смену (у.е.)
+    V(T1, T2) = {params['alpha']} · (T1 - {params['beta']} · 1) · cos({params['gamma']} · 1 · √(T1² + T2²))
 
-        Параметры задачи:
-        • alpha = {params['alpha']}
-        • beta = {params['beta']}
-        • gamma = {params['gamma']}
-        • Δp1 = 1
-        • Δp2 = 1
-        • Стоимость 1 м³ = {params['price_per_m3']} у.е.
-        • Метод оптимизации: {params.get('optimization_method', 'SLSQP')}
+    Себестоимость за смену:
 
-        Ограничения:
-        • -3 ≤ T1 ≤ 0
-        • -0.5 ≤ T2 ≤ 3
-        • T2 - T1 ≤ 3
+    C(T1, T2) = 8 · 100 · V(T1, T2)
 
-        Точность решения:
-        • 0.01 °C
-        """
+    где:
 
-        # Если выбран не вариант 11, добавляем предупреждение
+    • T1 — температура на первой перегородке (°C)
+    • T2 — температура на второй перегородке (°C)
+    • V — объемный расход фильтрата (м³/ч)
+    • C — себестоимость фильтрата за 8-часовую смену (у.е.)
+
+    ПАРАМЕТРЫ ЗАДАЧИ
+    ────────────────────────────────────────
+
+    • alpha = {params['alpha']}
+    • beta = {params['beta']}
+    • gamma = {params['gamma']}
+    • Δp1 = 1
+    • Δp2 = 1
+    • Стоимость 1 м³ = {params['price_per_m3']} у.е.
+    • Метод оптимизации = {params.get('optimization_method', 'SLSQP')}
+
+    ОГРАНИЧЕНИЯ
+    ────────────────────────────────────────
+
+    • -3 ≤ T1 ≤ 0
+    • -0.5 ≤ T2 ≤ 3
+    • T2 - T1 ≤ 3
+
+    ТОЧНОСТЬ РЕШЕНИЯ
+    ────────────────────────────────────────
+
+    • 0.01 °C
+    """
+
         if self.role == 'admin' and self.current_variant != 11:
             description += f"""
 
-            ⚠️ ⚠️ ⚠️ ПРЕДУПРЕЖДЕНИЕ ⚠️ ⚠️ ⚠️
+    ⚠️ ПРЕДУПРЕЖДЕНИЕ
+    ══════════════════════════════════════════
 
-            Выбран вариант {self.current_variant}.
+    Выбран вариант {self.current_variant}.
 
-            Для этого варианта отсутствуют необходимые данные для выполнения 
-            оптимизационного расчета.
+    Для данного варианта отсутствуют необходимые
+    исходные данные для выполнения оптимизации.
 
-            Пожалуйста, выберите вариант 11 для получения корректных результатов.
-            """
+    Для получения корректного результата выберите
+    вариант 11 через меню:
+
+    Администрирование → Выбор варианта
+    """
 
         text_widget.insert(tk.END, description)
         text_widget.config(state=tk.DISABLED)
