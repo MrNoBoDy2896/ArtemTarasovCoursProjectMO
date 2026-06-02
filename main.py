@@ -1,3 +1,5 @@
+import os
+import traceback
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -10,6 +12,20 @@ from optimization_core import (set_parameters, get_parameters,
                                get_available_methods)
 from plot_2d import plot_contour
 from plot_3d import plot_3d_surface
+
+APP_BG = "#eef2f7"
+CARD_BG = "#ffffff"
+ACCENT = "#4b5563"
+ACCENT_DARK = "#374151"
+TEXT_DARK = "#111827"
+MUTED = "#6b7280"
+SUCCESS = "#0f766e"
+WARN = "#b45309"
+
+TITLE_FONT = ("Segoe UI", 18, "bold")
+BODY_FONT = ("Segoe UI", 11)
+BODY_BOLD = ("Segoe UI", 11, "bold")
+SMALL_FONT = ("Segoe UI", 10)
 
 
 class LoginWindow:
@@ -32,23 +48,23 @@ class LoginWindow:
         self.window.geometry(f'{width}x{height}+{x}+{y}')
 
     def setup_ui(self):
-        title_label = tk.Label(self.window, text="🔐 АВТОРИЗАЦИЯ",
-                               font=("Arial", 16, "bold"))
+        title_label = tk.Label(self.window, text="Авторизация",
+                               font=("Segoe UI", 16, "bold"))
         title_label.pack(pady=30)
 
         frame = ttk.Frame(self.window, padding="20")
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Имя пользователя:", font=("Arial", 11)).pack(anchor=tk.W, pady=(10, 5))
-        self.username_entry = ttk.Entry(frame, font=("Arial", 11), width=30)
+        ttk.Label(frame, text="Имя пользователя:", font=("Segoe UI", 11)).pack(anchor=tk.W, pady=(10, 5))
+        self.username_entry = ttk.Entry(frame, font=("Segoe UI", 11), width=30)
         self.username_entry.pack(fill=tk.X, pady=(0, 10))
 
-        ttk.Label(frame, text="Пароль:", font=("Arial", 11)).pack(anchor=tk.W, pady=(10, 5))
-        self.password_entry = ttk.Entry(frame, font=("Arial", 11), width=30, show="•")
+        ttk.Label(frame, text="Пароль:", font=("Segoe UI", 11)).pack(anchor=tk.W, pady=(10, 5))
+        self.password_entry = ttk.Entry(frame, font=("Segoe UI", 11), width=30, show="•")
         self.password_entry.pack(fill=tk.X, pady=(0, 20))
 
-        login_btn = ttk.Button(frame, text="ВОЙТИ", command=self.login)
-        login_btn.pack(fill=tk.X, pady=10)
+        login_btn = ttk.Button(frame, text="Войти", command=self.login)
+        login_btn.pack(pady=10)
 
         self.username_entry.bind('<Return>', lambda e: self.password_entry.focus())
         self.password_entry.bind('<Return>', lambda e: self.login())
@@ -81,15 +97,26 @@ class MainApplication:
         self.T2_opt = None
         self.cost_opt = None
         self.params = get_parameters()
-        self.current_variant = 2
+        self.current_variant = 11
+
 
         self.root = tk.Tk()
         self.root.title(
             f"Оптимизация теплообменника - {username} ({'Администратор' if role == 'admin' else 'Пользователь'})")
         self.root.geometry("1200x900")
+        self.root.configure(bg="#f4f7fb")
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+
+        self.BG_color = "#f4f7fb"
+        self.CARD_color = "#ffffff"
+        self.ACCENT_color = "#2f6fed"
+
+        self.root.configure(bg=self.BG_color)
+        self.style.configure("TFrame", background=self.BG_color)
+        self.style.configure("Card.TFrame", background=self.CARD_color)
 
         self.center_window()
-
         self.setup_menu()
         self.setup_ui()
 
@@ -169,17 +196,17 @@ class MainApplication:
         info_frame = ttk.Frame(self.root, padding="10")
         info_frame.pack(fill=tk.X)
 
-        ttk.Label(info_frame, text=f"Пользователь: {self.username}", font=("Arial", 10, "bold")).pack(side=tk.LEFT)
+        ttk.Label(info_frame, text=f"Пользователь: {self.username}", font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
         ttk.Label(info_frame, text=f"Роль: {'Администратор' if self.role == 'admin' else 'Пользователь'}",
-                  font=("Arial", 10)).pack(side=tk.LEFT, padx=(20, 0))
+                  font=("Segoe UI", 10)).pack(side=tk.LEFT, padx=(20, 0))
 
         current_method = self.params.get('optimization_method', 'SLSQP')
         ttk.Label(info_frame, text=f"Метод: {current_method}",
-                  font=("Arial", 10), foreground="blue").pack(side=tk.LEFT, padx=(20, 0))
+                  font=("Segoe UI", 10), foreground="blue").pack(side=tk.LEFT, padx=(20, 0))
 
         if self.role == 'admin' and self.current_variant:
             ttk.Label(info_frame, text=f"Вариант: {self.current_variant}",
-                      font=("Arial", 10), foreground="green").pack(side=tk.LEFT, padx=(20, 0))
+                      font=("Segoe UI", 10), foreground="green").pack(side=tk.LEFT, padx=(20, 0))
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -192,6 +219,7 @@ class MainApplication:
         dialog.title("Выбор варианта")
         dialog.geometry("400x450")
         dialog.resizable(False, False)
+        #window.config(bg='#FFFAFA')****************
 
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
@@ -199,35 +227,35 @@ class MainApplication:
         dialog.geometry(f'400x450+{x}+{y}')
 
         ttk.Label(dialog, text="Выбор варианта задачи",
-                  font=("Arial", 14, "bold")).pack(pady=20)
+                  font=("Segoe UI", 14, "bold")).pack(pady=20)
 
         ttk.Label(dialog, text="Доступные варианты:",
-                  font=("Arial", 11)).pack()
+                  font=("Segoe UI", 11)).pack()
 
-        variants_info = tk.Text(dialog, height=8, width=40, font=("Arial", 10))
+        variants_info = tk.Text(dialog, height=8, width=40, font=("Segoe UI", 10))
         variants_info.pack(pady=10, padx=20)
-        variants_info.insert(tk.END, "Вариант 1: ❌ Недостаточно данных\n")
-        variants_info.insert(tk.END, "Вариант 2: ✅ Полные данные (работает)\n")
-        variants_info.insert(tk.END, "Вариант 3: ❌ Недостаточно данных\n")
-        variants_info.insert(tk.END, "Вариант 4: ❌ Недостаточно данных\n")
-        variants_info.insert(tk.END, "Вариант 5: ❌ Недостаточно данных\n")
-        variants_info.insert(tk.END, "Вариант 6: ❌ Недостаточно данных\n")
-        variants_info.insert(tk.END, "Вариант 7: ❌ Недостаточно данных")
+        variants_info.insert(tk.END, "Вариант 11: ✅ Полные данные (работает)\n")
+        variants_info.insert(tk.END, "Вариант 12: ❌ Недостаточно данных\n")
+        variants_info.insert(tk.END, "Вариант 13: ❌ Недостаточно данных\n")
+        variants_info.insert(tk.END, "Вариант 14: ❌ Недостаточно данных\n")
+        variants_info.insert(tk.END, "Вариант 15: ❌ Недостаточно данных\n")
+        variants_info.insert(tk.END, "Вариант 16: ❌ Недостаточно данных\n")
+        variants_info.insert(tk.END, "Вариант 17: ❌ Недостаточно данных")
         variants_info.config(state=tk.DISABLED)
 
-        ttk.Label(dialog, text="Введите номер варианта (1-7):",
-                  font=("Arial", 10)).pack(pady=(10, 5))
+        ttk.Label(dialog, text="Введите номер варианта (11-17):",
+                  font=("Segoe UI", 10)).pack(pady=(10, 5))
 
         variant_var = tk.StringVar(value=str(self.current_variant))
-        variant_spinbox = ttk.Spinbox(dialog, from_=1, to=7, textvariable=variant_var,
-                                      width=10, font=("Arial", 11))
+        variant_spinbox = ttk.Spinbox(dialog, from_=11, to=17, textvariable=variant_var,
+                                      width=10, font=("Segoe UI", 11))
         variant_spinbox.pack(pady=5)
 
         def apply_variant():
             try:
                 variant = int(variant_var.get())
-                if 1 <= variant <= 7:
-                    if variant == 2:
+                if 11 <= variant <= 17:
+                    if variant == 11:
                         self.current_variant = variant
                         messagebox.showinfo("Успех", ...)
                         dialog.destroy()
@@ -237,13 +265,13 @@ class MainApplication:
                         messagebox.showwarning("Недостаточно данных",
                                                f"Вариант {variant}:\n\n"
                                                "❌ Недостаточно данных для выполнения расчета.\n\n"
-                                               "Пожалуйста, выберите вариант 2 для полноценной работы.\n\n"
+                                               "Пожалуйста, выберите вариант 11 для полноценной работы.\n\n"
                                                "Доступные данные:\n"
-                                               "• Параметры теплообменника: только для варианта 2\n"
-                                               "• Граничные условия: только для варианта 2\n"
-                                               "• Исходные данные: только для варианта 2")
+                                               "• Параметры теплообменника: только для варианта 11\n"
+                                               "• Граничные условия: только для варианта 11\n"
+                                               "• Исходные данные: только для варианта 11")
                 else:
-                    messagebox.showwarning("Ошибка", "Введите число от 1 до 7")
+                    messagebox.showwarning("Ошибка", "Введите число от 11 до 17")
             except ValueError:
                 messagebox.showerror("Ошибка", "Введите корректное число")
 
@@ -262,7 +290,7 @@ class MainApplication:
 
                 if self.role == 'admin':
                     ttk.Label(widget, text=f"Вариант: {self.current_variant}",
-                              font=("Arial", 10), foreground="green").pack(side=tk.LEFT, padx=(20, 0))
+                              font=("Segoe UI", 10), foreground="green").pack(side=tk.LEFT, padx=(20, 0))
                 break
 
         for tab_id in self.notebook.tabs():
@@ -273,77 +301,96 @@ class MainApplication:
         self.create_task_tab()
 
     def create_task_tab(self):
-        task_frame = ttk.Frame(self.notebook)
+        task_frame = tk.Frame(self.notebook, bg="#f4f7fb")
         self.notebook.add(task_frame, text="Описание задачи")
 
-        text_widget = tk.Text(task_frame, wrap=tk.WORD, font=("Arial", 11), padx=20, pady=20)
-        text_widget.pack(fill=tk.BOTH, expand=True)
+        text_widget = tk.Text(
+            task_frame,
+            wrap=tk.WORD,
+            font=("Segoe UI", 11),
+            padx=25,
+            pady=25,
+            bg="#ffffff",
+            fg="#1f2937",
+            relief="solid",
+            bd=1,
+            highlightthickness=0
+        )
+        text_widget.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
         params = get_parameters()
 
-        # Добавляем информацию о выбранном варианте
         variant_info = ""
         if self.role == 'admin':
-            if self.current_variant == 2:
-                variant_info = "\n✅ ВЫБРАН РАБОЧИЙ ВАРИАНТ 2 - все данные доступны\n"
+            if self.current_variant == 11:
+                variant_info = "\n✅ ВЫБРАН ВАРИАНТ 11 — все данные доступны\n"
             else:
-                variant_info = f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} - недостаточно данных для расчета\n"
+                variant_info = (
+                    f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} — "
+                    "недостаточно данных для расчета\n"
+                )
 
         description = f"""
-        ФОРМАЛИЗОВАННОЕ ОПИСАНИЕ ЗАДАЧИ ОПТИМИЗАЦИИ ТЕПЛООБМЕННИКА
-        ===========================================================
-        {variant_info}
-        Целевая функция:
-        C(L, S) = {params['price_per_kg']} * [ {params['alpha']} * (L - S)² + {params['beta']} * (1/{params['T1']}) * (S + L - {params['gamma']} * {params['T2']})² ]
+    ФОРМАЛИЗОВАННОЕ ОПИСАНИЕ ЗАДАЧИ ОПТИМИЗАЦИИ ПРОЦЕССА ФИЛЬТРОВАНИЯ
+    ══════════════════════════════════════════════════════════════════
 
-        где:
-        • L - длина теплообменника (м)
-        • S - ширина теплообменника (м)
-        • C - затраты на изготовление (у.е.)
+    {variant_info}
 
-        Текущие параметры:
-        • alpha = {params['alpha']}
-        • beta = {params['beta']}
-        • gamma = {params['gamma']}
-        • H = {params['T1']}
-        • N = {params['T2']}
-        • price_per_kg = {params['price_per_kg']}
-        • Метод оптимизации: {params.get('optimization_method', 'SLSQP')}
+    Целевая функция:
 
-        Ограничения:
-        • 1 ≤ L ≤ 15 (длина в допустимых пределах)
-        • 1 ≤ S ≤ 12 (ширина в допустимых пределах)
-        • L + S ≥ 12 (минимальный периметр)
+    V(T1, T2) = {params['alpha']} · (T1 - {params['beta']} · 1) · cos({params['gamma']} · 1 · √(T1² + T2²))
 
-        Физический смысл:
-        Задача заключается в минимизации затрат на изготовление теплообменника 
-        при соблюдении геометрических ограничений. Целевая функция учитывает 
-        квадратичное отклонение от оптимального соотношения сторон и 
-        ограничение по минимальному периметру.
+    Себестоимость за смену:
 
-        Математическая запись:
+    C(T1, T2) = 8 · 100 · V(T1, T2)
 
-        min L,S  {params['price_per_kg']}[{params['alpha']}(L - S)² + {params['beta']}(S + L - {params['gamma']}*{params['T2']})²/{params['T1']}]
+    где:
 
-        при условиях:
-        L ∈ [1, 15]
-        S ∈ [1, 12]
-        L + S ≥ 12
-        """
+    • T1 — температура на первой перегородке (°C)
+    • T2 — температура на второй перегородке (°C)
+    • V — объемный расход фильтрата (м³/ч)
+    • C — себестоимость фильтрата за 8-часовую смену (у.е.)
 
-        # Если выбран не вариант 2, добавляем предупреждение
-        if self.role == 'admin' and self.current_variant != 2:
+    ПАРАМЕТРЫ ЗАДАЧИ
+    ────────────────────────────────────────
+
+    • alpha = {params['alpha']}
+    • beta = {params['beta']}
+    • gamma = {params['gamma']}
+    • Δp1 = 1
+    • Δp2 = 1
+    • Стоимость 1 м³ = {params['price_per_m3']} у.е.
+    • Метод оптимизации = {params.get('optimization_method', 'SLSQP')}
+
+    ОГРАНИЧЕНИЯ
+    ────────────────────────────────────────
+
+    • -3 ≤ T1 ≤ 0
+    • -0.5 ≤ T2 ≤ 3
+    • T2 - T1 ≤ 3
+
+    ТОЧНОСТЬ РЕШЕНИЯ
+    ────────────────────────────────────────
+
+    • 0.01 °C
+    """
+
+        if self.role == 'admin' and self.current_variant != 11:
             description += f"""
 
-            ⚠️ ⚠️ ⚠️ ПРЕДУПРЕЖДЕНИЕ ⚠️ ⚠️ ⚠️
+    ⚠️ ПРЕДУПРЕЖДЕНИЕ
+    ══════════════════════════════════════════
 
-            Выбран вариант {self.current_variant}.
+    Выбран вариант {self.current_variant}.
 
-            Для этого варианта отсутствуют необходимые данные для выполнения 
-            оптимизационного расчета.
+    Для данного варианта отсутствуют необходимые
+    исходные данные для выполнения оптимизации.
 
-            Пожалуйста, выберите вариант 2 для получения корректных результатов.
-            """
+    Для получения корректного результата выберите
+    вариант 11 через меню:
+
+    Администрирование → Выбор варианта
+    """
 
         text_widget.insert(tk.END, description)
         text_widget.config(state=tk.DISABLED)
@@ -355,13 +402,13 @@ class MainApplication:
         control_frame = ttk.Frame(plots_frame, padding="10")
         control_frame.pack(fill=tk.X)
 
-        ttk.Button(control_frame, text="📊 ПОСТРОИТЬ ГРАФИКИ",
+        ttk.Button(control_frame, text="Построить графики",
                    command=self.build_plots).pack(side=tk.LEFT, padx=5)
 
         self.results_frame = ttk.LabelFrame(plots_frame, text="Результаты оптимизации", padding="10")
         self.results_frame.pack(fill=tk.X, padx=10, pady=5)
 
-        self.results_text = tk.Text(self.results_frame, height=6, font=("Arial", 10))
+        self.results_text = tk.Text(self.results_frame, height=6, font=("Segoe UI", 10))
         self.results_text.pack(fill=tk.X)
         self.results_text.config(state=tk.DISABLED)
 
@@ -369,18 +416,18 @@ class MainApplication:
         self.graphs_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def build_plots(self):
-        if self.role == 'admin' and self.current_variant != 2:
+        if self.role == 'admin' and self.current_variant != 11:
             messagebox.showwarning(
                 "Недостаточно данных",
                 f"Вариант {self.current_variant}:\n\n"
                 "❌ Невозможно выполнить оптимизационный расчет.\n\n"
                 "Причина: отсутствуют необходимые исходные данные.\n\n"
-                "Решение: выберите вариант 2 в меню 'Администрирование → Выбор варианта'"
+                "Решение: выберите вариант 11 в меню 'Администрирование → Выбор варианта'"
             )
             return
 
         try:
-            x0 = [8, 6]
+            x0 = [-1.0, 0.0]
 
             # Используем выбранный метод оптимизации
             method = self.params.get('optimization_method', 'SLSQP')
@@ -389,7 +436,7 @@ class MainApplication:
             result = optimize_with_method(method, x0)
 
             if result is not None and result.success:
-                self.L_opt, self.S_opt = result.x
+                self.T1_opt, self.T2_opt = result.x
                 self.cost_opt = result.fun
 
                 for widget in self.graphs_frame.winfo_children():
@@ -418,21 +465,26 @@ class MainApplication:
                 messagebox.showerror("Ошибка", error_msg)
 
         except Exception as e:
+            traceback.print_exc()
             messagebox.showerror("Ошибка", f"Ошибка при построении графиков: {str(e)}")
 
     def create_2d_plot(self, parent):
-        fig = plot_contour(self.L_opt, self.S_opt)
+        fig = plot_contour(self.T1_opt, self.T2_opt)
         canvas = FigureCanvasTkAgg(fig, master=parent)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def create_3d_plot(self, parent):
-        fig = plot_3d_surface(self.L_opt, self.S_opt)
+        fig = plot_3d_surface(self.T1_opt, self.T2_opt)
         canvas = FigureCanvasTkAgg(fig, master=parent)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def update_results(self):
+        if self.T1_opt is None or self.T2_opt is None or self.cost_opt is None:
+            messagebox.showwarning("Предупреждение", "Результаты оптимизации ещё не рассчитаны")
+            return
+
         self.results_text.config(state=tk.NORMAL)
         self.results_text.delete(1.0, tk.END)
 
@@ -440,17 +492,16 @@ class MainApplication:
 
         results = f"""
         Метод оптимизации: {method}
-        Оптимальная длина L: {self.L_opt:.2f} м
-        Оптимальная ширина S: {self.S_opt:.2f} м
-        Минимальные затраты: {self.cost_opt:.2f} у.е.
-        Сумма L+S: {self.L_opt + self.S_opt:.2f} м
+        Оптимальная температура T1: {self.T1_opt:.2f} °C
+        Оптимальная температура T2: {self.T2_opt:.2f} °C
+        Минимальная себестоимость за смену: {self.cost_opt:.2f} у.е.
 
         Проверка ограничений:
-        • L ≥ 1: {'✓ выполнено' if self.L_opt >= 1 else '✗ не выполнено'}
-        • L ≤ 15: {'✓ выполнено' if self.L_opt <= 15 else '✗ не выполнено'}
-        • S ≥ 1: {'✓ выполнено' if self.S_opt >= 1 else '✗ не выполнено'}
-        • S ≤ 12: {'✓ выполнено' if self.S_opt <= 12 else '✗ не выполнено'}
-        • L + S ≥ 12: {'✓ выполнено' if self.L_opt + self.S_opt >= 12 else '✗ не выполнено'}
+        • T1 ≥ -3: {'✓ выполнено' if self.T1_opt >= -3 else '✗ не выполнено'}
+        • T1 ≤ 0: {'✓ выполнено' if self.T1_opt <= 0 else '✗ не выполнено'}
+        • T2 ≥ -0.5: {'✓ выполнено' if self.T2_opt >= -0.5 else '✗ не выполнено'}
+        • T2 ≤ 3: {'✓ выполнено' if self.T2_opt <= 3 else '✗ не выполнено'}
+        • T2 - T1 ≤ 3: {'✓ выполнено' if (self.T2_opt - self.T1_opt) <= 3 else '✗ не выполнено'}
         """
 
         self.results_text.insert(tk.END, results)
@@ -583,55 +634,42 @@ class TaskSettingsWindow:
         main_frame = ttk.Frame(self.window, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(main_frame, text="РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ЦЕЛЕВОЙ ФУНКЦИИ",
-                  font=("Arial", 12, "bold")).pack(pady=(0, 20))
+        ttk.Label(main_frame, text="Редактирование параметров целевой фукнции",
+                  font=("Segoe UI", 12, "bold")).pack(pady=(0, 20))
 
         param_frame = ttk.LabelFrame(main_frame, text="Параметры", padding="15")
         param_frame.pack(fill=tk.BOTH, expand=True)
 
         row1 = ttk.Frame(param_frame)
         row1.pack(fill=tk.X, pady=5)
-        ttk.Label(row1, text="alpha (коэффициент разности сторон):", width=30, anchor=tk.W).pack(side=tk.LEFT)
+        ttk.Label(row1, text="alpha (коэф. разности сторон):", width=30, anchor=tk.W).pack(side=tk.LEFT)
         self.alpha_var = tk.StringVar(value=str(self.params['alpha']))
         ttk.Entry(row1, textvariable=self.alpha_var, width=15).pack(side=tk.RIGHT)
 
         row2 = ttk.Frame(param_frame)
         row2.pack(fill=tk.X, pady=5)
-        ttk.Label(row2, text="beta (коэффициент периметра):", width=30, anchor=tk.W).pack(side=tk.LEFT)
+        ttk.Label(row2, text="beta (коэф. периметра):", width=30, anchor=tk.W).pack(side=tk.LEFT)
         self.beta_var = tk.StringVar(value=str(self.params['beta']))
         ttk.Entry(row2, textvariable=self.beta_var, width=15).pack(side=tk.RIGHT)
 
         row3 = ttk.Frame(param_frame)
         row3.pack(fill=tk.X, pady=5)
-        ttk.Label(row3, text="gamma (коэффициент N):", width=30, anchor=tk.W).pack(side=tk.LEFT)
+        ttk.Label(row3, text="gamma (коэф. N):", width=30, anchor=tk.W).pack(side=tk.LEFT)
         self.gamma_var = tk.StringVar(value=str(self.params['gamma']))
         ttk.Entry(row3, textvariable=self.gamma_var, width=15).pack(side=tk.RIGHT)
 
         row4 = ttk.Frame(param_frame)
         row4.pack(fill=tk.X, pady=5)
-        ttk.Label(row4, text="T1 (**************):", width=30, anchor=tk.W).pack(side=tk.LEFT)
+        ttk.Label(row4, text="", width=30, anchor=tk.W).pack(side=tk.LEFT)
         self.T1_var = tk.StringVar(value=str(self.params['T1']))
         ttk.Entry(row4, textvariable=self.T1_var, width=15).pack(side=tk.RIGHT)
 
         row5 = ttk.Frame(param_frame)
         row5.pack(fill=tk.X, pady=5)
-        ttk.Label(row5, text="T2 (*************):", width=30, anchor=tk.W).pack(side=tk.LEFT)
+        ttk.Label(row5, text="T2 (T на 2-й перегородке, °C):", width=30, anchor=tk.W).pack(side=tk.LEFT)
         self.T2_var = tk.StringVar(value=str(self.params['T2']))
         ttk.Entry(row5, textvariable=self.T2_var, width=15).pack(side=tk.RIGHT)
-        
-        row51 = ttk.Frame(param_frame)
-        row51.pack(fill=tk.X, pady=5)
-        ttk.Label(row5, text="P1 (************):", width=30, anchor=tk.W).pack(side=tk.LEFT)
-        self.p1_var = tk.StringVar(value=str(self.params['p1']))
-        ttk.Entry(row5, textvariable=self.T2_var, width=15).pack(side=tk.RIGHT)
 
-        row52 = ttk.Frame(param_frame)
-        row52.pack(fill=tk.X, pady=5)
-        ttk.Label(row5, text="P2 (************):", width=30, anchor=tk.W).pack(side=tk.LEFT)
-        self.p2_var = tk.StringVar(value=str(self.params['p2']))
-        ttk.Entry(row5, textvariable=self.T2_var, width=15).pack(side=tk.RIGHT)
-        
-        
 
         row6 = ttk.Frame(param_frame)
         row6.pack(fill=tk.X, pady=5)
@@ -639,9 +677,9 @@ class TaskSettingsWindow:
         self.price_var = tk.StringVar(value=str(self.params['price_per_kg']))
         ttk.Entry(row6, textvariable=self.price_var, width=15).pack(side=tk.RIGHT)
 
-        ttk.Label(param_frame, text="Ограничения (фиксированы):", font=("Arial", 9, "bold")).pack(anchor=tk.W,
+        ttk.Label(param_frame, text="Ограничения (фиксированы):", font=("Segoe UI", 9, "bold")).pack(anchor=tk.W,
                                                                                                   pady=(15, 5))
-        ttk.Label(param_frame, text="• 1 ≤ L ≤ 15\n• 1 ≤ S ≤ 12\n• L + S ≥ 12 *********************", justify=tk.LEFT).pack(anchor=tk.W)
+        ttk.Label(param_frame, text="• -3 ≤ T1 ≤ 0\n• -0.5 ≤ T2 ≤ 3\n• T2 - T1 ≤ 3", justify=tk.LEFT).pack(anchor=tk.W)
 
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X, pady=(20, 0))
@@ -655,14 +693,9 @@ class TaskSettingsWindow:
             alpha = float(self.alpha_var.get())
             beta = float(self.beta_var.get())
             gamma = float(self.gamma_var.get())
-            T1 = float(self.T1_var.get())
-            T2 = float(self.T2_var.get())
-            p1 = float(self.p1_var.get())
-            p2 =float(self.p2_var.get())
             price = float(self.price_var.get())
 
-            set_parameters(alpha, beta, gamma, T1, T2, p1, p2, price)
-
+            set_parameters(alpha, beta, gamma, price)
             self.main_app.params = get_parameters()
 
             for tab_id in self.main_app.notebook.tabs():
@@ -671,9 +704,8 @@ class TaskSettingsWindow:
                     break
 
             self.main_app.create_task_tab()
-
-            self.main_app.L_opt = None
-            self.main_app.S_opt = None
+            self.main_app.T1_opt = None
+            self.main_app.T2_opt = None
             self.main_app.cost_opt = None
 
             messagebox.showinfo("Успех", "Параметры успешно сохранены в settings.txt")
@@ -688,20 +720,14 @@ class TaskSettingsWindow:
         default = {
             'alpha': 1.0,
             'beta': 1.0,
-            'gamma': 1.0,
-            'T1': 9,
-            'T2': 10,
-            'price_per_kg': 100
+            'gamma': 3.14,
+            'price_per_m3': 100.0
         }
 
         self.alpha_var.set(str(default['alpha']))
         self.beta_var.set(str(default['beta']))
         self.gamma_var.set(str(default['gamma']))
-        self.T1_var.set(str(default['T1']))
-        self.T2_var.set(str(default['T2']))
-        self.p1_var.set(str(default['p1']))
-        self.p2_var.set(str(default['p2']))
-        self.price_var.set(str(default['price_per_kg']))
+        self.price_var.set(str(default['price_per_m3']))
 
 
 class MethodsHelpWindow:
@@ -726,8 +752,8 @@ class MethodsHelpWindow:
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         # Заголовок
-        title_label = tk.Label(main_frame, text="📚 МЕТОДЫ ОПТИМИЗАЦИИ",
-                               font=("Arial", 14, "bold"), fg="#2c3e50")
+        title_label = tk.Label(main_frame, text="Методы оптимизации",
+                               font=("Segoe UI", 14, "bold"), fg="#2c3e50")
         title_label.pack(pady=(0, 15))
 
         # Текстовое поле с прокруткой
@@ -737,7 +763,7 @@ class MethodsHelpWindow:
         scrollbar = ttk.Scrollbar(text_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Arial", 10),
+        self.text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Segoe UI", 10),
                                    yscrollcommand=scrollbar.set, padx=15, pady=15)
         self.text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.text_widget.yview)
@@ -752,110 +778,129 @@ class MethodsHelpWindow:
         ttk.Button(btn_frame, text="Закрыть", command=self.window.destroy).pack()
 
     def insert_methods_description(self):
-        descriptions = """ *******************************
-══════════════════════════════════════════════════════════════
+        descriptions = """
+        ══════════════════════════════════════════════════════════════
+                        Методы оптимизации
+        ══════════════════════════════════════════════════════════════
 
-1. SLSQP (Sequential Least Squares Programming)
-──────────────────────────────────────────────────────────────
-Тип метода: Градиентный / Последовательное квадратичное программирование
+        [SLSQP]
+        Sequential Least Squares Programming
 
-Принцип работы:
-• Использует информацию о производных (градиенте) целевой функции
-• На каждой итерации решает задачу квадратичного программирования
-• Последовательно улучшает решение, двигаясь в направлении антиградиента
+        Тип:
+        • Градиентный метод
+        • Последовательное квадратичное программирование
 
-Особенности:
-✓ Быстрая сходимость для гладких функций
-✓ Точно соблюдает ограничения
-✗ Требует вычисления производных (используется численное дифференцирование)
-✗ Может застревать в локальных минимумах
+        Принцип работы:
+        • Использует производные целевой функции
+        • На каждой итерации строит локальное приближение
+        • Двигается к минимуму по направлению антиградиента
 
-Когда использовать: Для гладких, выпуклых или почти выпуклых функций, 
-когда важна скорость вычислений.
+        Преимущества:
+        ✓ Очень высокая скорость работы
+        ✓ Хорошая точность решения
+        ✓ Корректная работа с ограничениями
 
-══════════════════════════════════════════════════════════════
+        Недостатки:
+        ✗ Может найти локальный минимум
+        ✗ Требует гладкости функции
 
-2. Дифференциальная эволюция (Differential Evolution)
-──────────────────────────────────────────────────────────────
-Тип метода: Эволюционный / Генетический алгоритм
+        Рекомендуется:
+        • Для быстрых расчетов
+        • Для гладких функций
+        • Для предварительной оценки решения
 
-Принцип работы:
-• Создается популяция потенциальных решений
-• На каждом поколении:
-  - Выбираются случайные особи для "мутации"
-  - Создаются новые решения путем комбинации существующих
-  - Лучшие решения переходят в следующее поколение
+        ══════════════════════════════════════════════════════════════
 
-Особенности:
-✓ Не требует вычисления производных
-✓ Хорошо находит глобальный минимум
-✓ Устойчив к "оврагам" и разрывам функции
-✗ Медленнее градиентных методов
-✗ Требует настройки параметров (размер популяции, коэффициент мутации)
+        [Дифференциальная эволюция]
+        Differential Evolution
 
-Когда использовать: Для многоэкстремальных задач, когда важно найти 
-глобальный оптимум, а не локальный.
+        Тип:
+        • Эволюционный алгоритм
+        • Популяционный метод поиска
 
-════════════════════════════════════════════════════════════
+        Принцип работы:
+        • Создает множество случайных решений
+        • Комбинирует их между собой
+        • Постепенно улучшает популяцию
 
-3. Имитация отжига (Simulated Annealing / Dual Annealing)
-────────────────────────────────────────────────────────────
-Тип метода: Метаэвристический / Вероятностный
+        Преимущества:
+        ✓ Хорошо ищет глобальный минимум
+        ✓ Не требует производных
+        ✓ Устойчив к сложным функциям
 
-Принцип работы:
-• Имитирует процесс отжига металлов при закалке
-• На начальных этапах может принимать ухудшающие решения (высокая "температура")
-• Со временем "температура" снижается, и алгоритм становится более консервативным
-• Dual Annealing использует два этапа: глобальный и локальный поиск
+        Недостатки:
+        ✗ Работает медленнее SLSQP
+        ✗ Требует больше вычислений
 
-Особенности:
-✓ Находит глобальный оптимум с высокой вероятностью
-✓ Не требует производных
-✓ Хорош для сложных ландшафтов
-✗ Медленный (много вычислений целевой функции)
-✗ Зависит от выбора начальной температуры и графика охлаждения
+        Рекомендуется:
+        • Для сложных функций
+        • При наличии множества локальных минимумов
+        • Для глобального поиска
 
-Когда использовать: Для сложных, сильно изрезанных функций, когда 
-дифференциальная эволюция работает медленно.
+        ══════════════════════════════════════════════════════════════
 
-══════════════════════════════════════════════════════════════
+        [Имитация отжига]
+        Simulated Annealing
 
-СРАВНИТЕЛЬНАЯ ТАБЛИЦА
-──────────────────────────────────────────────────────────────
-▶ СКОРОСТЬ (от самой быстрой к самой медленной):
-    1. SLSQP — ⚡⚡⚡ (очень быстро)
-    2. Дифференциальная эволюция — ⚡⚡ (средне)
-    3. Имитация отжига — ⚡ (медленно)
+        Тип:
+        • Вероятностный метод
+        • Метаэвристический алгоритм
 
-▶ ГЛОБАЛЬНЫЙ ПОИСК (способность находить глобальный минимум):
-    • SLSQP — ⭐ (только локальный поиск)
-    • Дифференциальная эволюция — ⭐⭐⭐ (отлично)
-    • Имитация отжига — ⭐⭐⭐ (отлично)
+        Принцип работы:
+        • Имитирует охлаждение металла
+        • Может временно ухудшать решение
+        • Постепенно переходит к устойчивому минимуму
 
-▶ ТОЧНОСТЬ РЕШЕНИЯ:
-    • SLSQP — ⭐⭐⭐ (высокая точность)
-    • Дифференциальная эволюция — ⭐⭐ (средняя)
-    • Имитация отжига — ⭐⭐ (средняя)
+        Преимущества:
+        ✓ Хороший глобальный поиск
+        ✓ Не требует производных
+        ✓ Подходит для сложных ландшафтов функции
 
-▶ РАБОТА С ЗАШУМЛЕННЫМИ ФУНКЦИЯМИ:
-    • SLSQP — ❌ (плохо)
-    • Дифференциальная эволюция — ✅ (хорошо)
-    • Имитация отжига — ✅ (хорошо)
+        Недостатки:
+        ✗ Самый медленный метод
+        ✗ Зависит от параметров охлаждения
 
-▶ НЕОБХОДИМОСТЬ В ПРОИЗВОДНЫХ:
-    • SLSQP — ✅ (требует, использует численное дифференцирование)
-    • Дифференциальная эволюция — ❌ (не требует)
-    • Имитация отжига — ❌ (не требует)
+        Рекомендуется:
+        • Для сложных задач оптимизации
+        • Для негладких функций
+        • Для проверки результата других методов
 
-РЕКОМЕНДАЦИИ ПО ВЫБОРУ
-─────────────────────────────────────────────────────────────
-• Для быстрой оценки → используйте SLSQP
-• Если функция имеет множество локальных минимумов → используйте 
-  Дифференциальную эволюцию
-• Для сложных, разрывных функций → используйте Имитацию отжига
-• Если результат SLSQP вызывает сомнения → проверьте другим методом
+        ══════════════════════════════════════════════════════════════
+                            Сравнение методов
+        ══════════════════════════════════════════════════════════════
 
-════════════════════════════════════════════════════════════
+        Скорость:
+        • SLSQP                    → ★★★★★
+        • Дифференциальная эволюция → ★★★☆☆
+        • Имитация отжига           → ★★☆☆☆
+
+        Поиск глобального минимума:
+        • SLSQP                    → ★☆☆☆☆
+        • Дифференциальная эволюция → ★★★★★
+        • Имитация отжига           → ★★★★★
+
+        Точность:
+        • SLSQP                    → ★★★★★
+        • Дифференциальная эволюция → ★★★★☆
+        • Имитация отжига           → ★★★★☆
+
+        ══════════════════════════════════════════════════════════════
+                          Рекомендации
+        ══════════════════════════════════════════════════════════════
+
+        • Для максимальной скорости:
+          → используйте SLSQP
+
+        • Для надежного глобального поиска:
+          → используйте Дифференциальную эволюцию
+
+        • Для сложных функций:
+          → используйте Имитацию отжига
+
+        • Для проверки результата:
+          → сравните несколько методов
+
+        ══════════════════════════════════════════════════════════════
         """
 
         self.text_widget.insert(tk.END, descriptions)
