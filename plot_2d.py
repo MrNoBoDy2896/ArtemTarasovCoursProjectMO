@@ -1,7 +1,3 @@
-"""
-Модуль для построения 2D визуализаций
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from optimization_core import cost_function, check_feasibility
@@ -29,23 +25,40 @@ def plot_contour(T1_opt=None, T2_opt=None, save_path=None):
 
     fig, ax = plt.subplots(figsize=(12, 10))
 
-    levels = 25
-    contour = ax.contour(T1_grid, T2_grid, cost, levels=levels, cmap=plt.cm.viridis, linewidths=0.8)
+    contour = ax.contour(
+        T1_grid, T2_grid, cost,
+        levels=25,
+        cmap=plt.cm.viridis,
+        linewidths=0.8
+    )
     plt.clabel(contour, inline=True, fontsize=8, fmt='%.0f')
 
-    ax.contourf(T1_grid, T2_grid, feasible, levels=[0.5, 1.5], colors=['lightgreen'], alpha=0.2)
+    ax.contourf(
+        T1_grid, T2_grid, feasible,
+        levels=[0.5, 1.5],
+        colors=['lightgreen'],
+        alpha=0.2
+    )
 
-    # Граница T2 - T1 = 3  =>  T2 = T1 + 3
-    boundary = T1_vals + 3.0
-    ax.fill_between(T1_vals, -0.5, boundary, color='lightblue', alpha=0.25, label='Допустимая область')
+    upper_boundary = np.minimum(3.0, T1_vals + 3.0)
+    ax.fill_between(
+        T1_vals, -0.5, upper_boundary,
+        color='lightblue', alpha=0.25,
+        label='Допустимая область'
+    )
 
     if T1_opt is not None and T2_opt is not None:
-        ax.plot(T1_opt, T2_opt, 'r*', markersize=15, markeredgewidth=2,
-                markeredgecolor='black', label=f'Оптимум: T1={T1_opt:.2f}°C, T2={T2_opt:.2f}°C')
+        ax.plot(
+            T1_opt, T2_opt, 'r*',
+            markersize=15,
+            markeredgewidth=2,
+            markeredgecolor='black',
+            label=f'Оптимум: T1={T1_opt:.2f}°C, T2={T2_opt:.2f}°C'
+        )
 
     ax.set_xlabel('Температура T1 (°C)', fontsize=12)
     ax.set_ylabel('Температура T2 (°C)', fontsize=12)
-    ax.set_title('Линии равного значения себестоимости фильтрата', fontsize=14, fontweight='bold')
+    ax.set_title('Линии равного значения себестоимости', fontsize=14, fontweight='bold')
 
     ax.grid(True, alpha=0.3, linestyle='--')
     ax.legend(loc='upper right', fontsize=10)

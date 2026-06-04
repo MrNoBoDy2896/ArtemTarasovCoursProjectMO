@@ -10,6 +10,7 @@ price_per_m3 = 100.0
 optimization_method = 'SLSQP'
 
 SETTINGS_FILE = 'settings.txt'
+
 SHIFT_HOURS = 8.0
 DP1 = 1.0
 DP2 = 1.0
@@ -30,18 +31,17 @@ def load_settings():
         try:
             with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
                 settings = json.load(f)
-
-            alpha = settings.get('alpha', default_settings['alpha'])
-            beta = settings.get('beta', default_settings['beta'])
-            gamma = settings.get('gamma', default_settings['gamma'])
-            price_per_m3 = settings.get('price_per_m3', default_settings['price_per_m3'])
-            optimization_method = settings.get('optimization_method', default_settings['optimization_method'])
+                alpha = settings.get('alpha', default_settings['alpha'])
+                beta = settings.get('beta', default_settings['beta'])
+                gamma = settings.get('gamma', default_settings['gamma'])
+                price_per_m3 = settings.get('price_per_m3', default_settings['price_per_m3'])
+                optimization_method = settings.get('optimization_method', default_settings['optimization_method'])
         except Exception:
             set_default_settings(default_settings)
-            save_settings()
+            save_settings(default_settings)
     else:
         set_default_settings(default_settings)
-        save_settings()
+        save_settings(default_settings)
 
 
 def set_default_settings(settings):
@@ -93,27 +93,26 @@ def get_parameters():
     }
 
 
-def weight_function(x):
+def raw_volume_function(x):
     T1, T2 = x
     return alpha * (T1 - beta * DP1) * np.cos(gamma * DP2 * np.sqrt(T1**2 + T2**2))
 
 
+def volume_function(x):
+    return max(abs(raw_volume_function(x)), 1e-9)
+
+
 def cost_function(x):
-    # себестоимость за смену: 8 часов * 100 у.е. * V
-    return SHIFT_HOURS * price_per_m3 * weight_function(x)
-
-
-def cost_function_with_args(T1, T2):
-    return cost_function([T1, T2])
+    return SHIFT_HOURS * price_per_m3 * volume_function(x)
 
 
 def get_constraints():
     return [
         {'type': 'ineq', 'fun': lambda x: x[0] + 3.0},        # T1 >= -3
-        {'type': 'ineq', 'fun': lambda x: -x[0]},              # T1 <= 0
-        {'type': 'ineq', 'fun': lambda x: x[1] + 0.5},         # T2 >= -0.5
-        {'type': 'ineq', 'fun': lambda x: 3.0 - x[1]},         # T2 <= 3
-        {'type': 'ineq', 'fun': lambda x: 3.0 - (x[1] - x[0])} # T2 - T1 <= 3
+        {'type': 'ineq', 'fun': lambda x: -x[0]},             # T1 <= 0
+        {'type': 'ineq', 'fun': lambda x: x[1] + 0.5},        # T2 >= -0.5
+        {'type': 'ineq', 'fun': lambda x: 3.0 - x[1]},        # T2 <= 3
+        {'type': 'ineq', 'fun': lambda x: 3.0 - (x[1] - x[0])}  # T2 - T1 <= 3
     ]
 
 
@@ -151,16 +150,16 @@ def optimize_with_method(method, x0=None):
             T1, T2 = x
             penalty = 0.0
 
-            if T1 < -3:
-                penalty += 1e6 * (-3 - T1) ** 2
-            if T1 > 0:
-                penalty += 1e6 * (T1 - 0) ** 2
+            if T1 < -3.0:
+                penalty += 1e6 * (-3.0 - T1) ** 2
+            if T1 > 0.0:
+                penalty += 1e6 * (T1 - 0.0) ** 2
             if T2 < -0.5:
                 penalty += 1e6 * (-0.5 - T2) ** 2
-            if T2 > 3:
-                penalty += 1e6 * (T2 - 3) ** 2
-            if T2 - T1 > 3:
-                penalty += 1e6 * (T2 - T1 - 3) ** 2
+            if T2 > 3.0:
+                penalty += 1e6 * (T2 - 3.0) ** 2
+            if T2 - T1 > 3.0:
+                penalty += 1e6 * (T2 - T1 - 3.0) ** 2
 
             return cost_function(x) + penalty
 
@@ -173,68 +172,41 @@ def optimize_with_method(method, x0=None):
             seed=42
         )
 
-
     elif method == 'Имитация отжига':
-
         def penalized_cost(x):
-
             T1, T2 = x
-
             penalty = 0.0
-
-            # Ограничения задачи
 
             if T1 < -3.0:
                 penalty += 1e6 * (-3.0 - T1) ** 2
-
             if T1 > 0.0:
                 penalty += 1e6 * (T1 - 0.0) ** 2
-
             if T2 < -0.5:
                 penalty += 1e6 * (-0.5 - T2) ** 2
-
             if T2 > 3.0:
                 penalty += 1e6 * (T2 - 3.0) ** 2
-
             if T2 - T1 > 3.0:
                 penalty += 1e6 * (T2 - T1 - 3.0) ** 2
 
             return cost_function(x) + penalty
 
         result = dual_annealing(
-
             penalized_cost,
-
             bounds=bounds,
-
             maxiter=1000,
-
             initial_temp=5230,
-
             visit=2.62,
-
             accept=-5.0,
-
             seed=42
-
         )
 
-        # После отжига дополнительно доводим решение SLSQP, чтобы гарантировать допустимость
-
         corrected = minimize(
-
             cost_function,
-
             result.x,
-
             method='SLSQP',
-
             bounds=bounds,
-
             constraints=constraints,
-
             tol=0.01
-
         )
 
         if corrected.success and check_feasibility(corrected.x[0], corrected.x[1]):

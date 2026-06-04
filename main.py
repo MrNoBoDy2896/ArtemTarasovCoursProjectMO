@@ -7,7 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 
 from create_db import get_user, add_user, get_all_users, delete_user
-from optimization_core import (set_parameters, get_parameters,
+from optimization_core import (get_parameters,
                                set_optimization_method, optimize_with_method,
                                get_available_methods)
 from plot_2d import plot_contour
@@ -99,12 +99,13 @@ class MainApplication:
         self.params = get_parameters()
         self.current_variant = 11
 
-
         self.root = tk.Tk()
         self.root.title(
-            f"Оптимизация теплообменника - {username} ({'Администратор' if role == 'admin' else 'Пользователь'})")
+            f"Оптимизация процесса фильтрования - {username} ({'Администратор' if role == 'admin' else 'Пользователь'})"
+        )
         self.root.geometry("1200x900")
         self.root.configure(bg="#f4f7fb")
+
         self.style = ttk.Style()
         self.style.theme_use('clam')
 
@@ -112,7 +113,6 @@ class MainApplication:
         self.CARD_color = "#ffffff"
         self.ACCENT_color = "#2f6fed"
 
-        self.root.configure(bg=self.BG_color)
         self.style.configure("TFrame", background=self.BG_color)
         self.style.configure("Card.TFrame", background=self.CARD_color)
 
@@ -325,53 +325,39 @@ class MainApplication:
             if self.current_variant == 11:
                 variant_info = "\n✅ ВЫБРАН ВАРИАНТ 11 — все данные доступны\n"
             else:
-                variant_info = (
-                    f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} — "
-                    "недостаточно данных для расчета\n"
-                )
+                variant_info = f"\n⚠️ ВЫБРАН ВАРИАНТ {self.current_variant} — недостаточно данных для расчета\n"
 
         description = f"""
     ФОРМАЛИЗОВАННОЕ ОПИСАНИЕ ЗАДАЧИ ОПТИМИЗАЦИИ ПРОЦЕССА ФИЛЬТРОВАНИЯ
-    ══════════════════════════════════════════════════════════════════
+    ══════════════════════════════════════════════════════════════════════
 
-    {variant_info}
+    Объемный расход:
+    V(T1, T2) = {params['alpha']} * (T1 - {params['beta']} * 1) * cos({params['gamma']} * 1 * sqrt(T1² + T2²))
 
-    Целевая функция:
-
-    V(T1, T2) = {params['alpha']} · (T1 - {params['beta']} · 1) · cos({params['gamma']} · 1 · √(T1² + T2²))
-
-    Себестоимость за смену:
-
-    C(T1, T2) = 8 · 100 · V(T1, T2)
+    Себестоимость за смену (целевая функция):
+    C(T1, T2) = 8 * 100 * |V(T1, T2)|
 
     где:
-
     • T1 — температура на первой перегородке (°C)
     • T2 — температура на второй перегородке (°C)
     • V — объемный расход фильтрата (м³/ч)
     • C — себестоимость фильтрата за 8-часовую смену (у.е.)
 
-    ПАРАМЕТРЫ ЗАДАЧИ
-    ────────────────────────────────────────
-
+    Параметры задачи:
     • alpha = {params['alpha']}
     • beta = {params['beta']}
     • gamma = {params['gamma']}
     • Δp1 = 1
     • Δp2 = 1
     • Стоимость 1 м³ = {params['price_per_m3']} у.е.
-    • Метод оптимизации = {params.get('optimization_method', 'SLSQP')}
+    • Метод оптимизации: {params.get('optimization_method', 'SLSQP')}
 
-    ОГРАНИЧЕНИЯ
-    ────────────────────────────────────────
-
+    Ограничения:
     • -3 ≤ T1 ≤ 0
     • -0.5 ≤ T2 ≤ 3
     • T2 - T1 ≤ 3
 
-    ТОЧНОСТЬ РЕШЕНИЯ
-    ────────────────────────────────────────
-
+    Точность решения:
     • 0.01 °C
     """
 
@@ -379,27 +365,22 @@ class MainApplication:
             description += f"""
 
     ⚠️ ПРЕДУПРЕЖДЕНИЕ
-    ══════════════════════════════════════════
+    ════════════════════
 
     Выбран вариант {self.current_variant}.
 
-    Для данного варианта отсутствуют необходимые
-    исходные данные для выполнения оптимизации.
-
-    Для получения корректного результата выберите
-    вариант 11 через меню:
-
-    Администрирование → Выбор варианта
+    Для данного варианта отсутствуют необходимые данные
+    для выполнения оптимизационного расчета.
     """
 
         text_widget.insert(tk.END, description)
         text_widget.config(state=tk.DISABLED)
 
     def create_plots_tab(self):
-        plots_frame = ttk.Frame(self.notebook)
+        plots_frame = tk.Frame(self.notebook, bg="#f4f7fb")
         self.notebook.add(plots_frame, text="Графики и результаты")
 
-        control_frame = ttk.Frame(plots_frame, padding="10")
+        control_frame = tk.Frame(plots_frame, bg="#f4f7fb", padx=10, pady=10)
         control_frame.pack(fill=tk.X)
 
         ttk.Button(control_frame, text="Построить графики",
@@ -412,7 +393,7 @@ class MainApplication:
         self.results_text.pack(fill=tk.X)
         self.results_text.config(state=tk.DISABLED)
 
-        self.graphs_frame = ttk.Frame(plots_frame)
+        self.graphs_frame = tk.Frame(plots_frame, bg="#f4f7fb")
         self.graphs_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def build_plots(self):
@@ -428,8 +409,6 @@ class MainApplication:
 
         try:
             x0 = [-1.0, 0.0]
-
-            # Используем выбранный метод оптимизации
             method = self.params.get('optimization_method', 'SLSQP')
 
             from optimization_core import optimize_with_method
@@ -454,10 +433,12 @@ class MainApplication:
                 self.create_3d_plot(frame_3d)
 
                 self.update_results()
-                messagebox.showinfo("Успех",
-                                    f"Оптимизация выполнена!\n\n"
-                                    f"Использованный метод: {method}\n"
-                                    f"Количество итераций: {result.nit if hasattr(result, 'nit') else 'N/A'}")
+                messagebox.showinfo(
+                    "Успех",
+                    f"Оптимизация выполнена!\n\n"
+                    f"Использованный метод: {method}\n"
+                    f"Количество итераций: {result.nit if hasattr(result, 'nit') else 'N/A'}"
+                )
             else:
                 error_msg = "Не удалось найти оптимальное решение"
                 if result is not None and hasattr(result, 'message'):
@@ -491,18 +472,18 @@ class MainApplication:
         method = self.params.get('optimization_method', 'SLSQP')
 
         results = f"""
-        Метод оптимизации: {method}
-        Оптимальная температура T1: {self.T1_opt:.2f} °C
-        Оптимальная температура T2: {self.T2_opt:.2f} °C
-        Минимальная себестоимость за смену: {self.cost_opt:.2f} у.е.
+    Метод оптимизации: {method}
+    Оптимальная температура T1: {self.T1_opt:.2f} °C
+    Оптимальная температура T2: {self.T2_opt:.2f} °C
+    Минимальная себестоимость за смену: {self.cost_opt:.2f} у.е.
 
-        Проверка ограничений:
-        • T1 ≥ -3: {'✓ выполнено' if self.T1_opt >= -3 else '✗ не выполнено'}
-        • T1 ≤ 0: {'✓ выполнено' if self.T1_opt <= 0 else '✗ не выполнено'}
-        • T2 ≥ -0.5: {'✓ выполнено' if self.T2_opt >= -0.5 else '✗ не выполнено'}
-        • T2 ≤ 3: {'✓ выполнено' if self.T2_opt <= 3 else '✗ не выполнено'}
-        • T2 - T1 ≤ 3: {'✓ выполнено' if (self.T2_opt - self.T1_opt) <= 3 else '✗ не выполнено'}
-        """
+    Проверка ограничений:
+    • T1 ≥ -3: {'✓ выполнено' if self.T1_opt >= -3 else '✗ не выполнено'}
+    • T1 ≤ 0: {'✓ выполнено' if self.T1_opt <= 0 else '✗ не выполнено'}
+    • T2 ≥ -0.5: {'✓ выполнено' if self.T2_opt >= -0.5 else '✗ не выполнено'}
+    • T2 ≤ 3: {'✓ выполнено' if self.T2_opt <= 3 else '✗ не выполнено'}
+    • T2 - T1 ≤ 3: {'✓ выполнено' if (self.T2_opt - self.T1_opt) <= 3 else '✗ не выполнено'}
+    """
 
         self.results_text.insert(tk.END, results)
         self.results_text.config(state=tk.DISABLED)

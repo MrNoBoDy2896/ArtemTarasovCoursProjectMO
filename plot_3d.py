@@ -56,7 +56,8 @@ def plot_3d_surface(T1_opt=None, T2_opt=None, save_path=None):
     ax.set_title('Поверхность целевой функции с ограничениями',
                  fontsize=14, fontweight='bold', pad=20)
 
-    fig.colorbar(surf, ax=ax, shrink=0.6, aspect=20, pad=0.1, label='Себестоимость (у.е.)')
+    fig.colorbar(surf, ax=ax, shrink=0.6, aspect=20, pad=0.1,
+                 label='Себестоимость (у.е.)')
 
     ax.view_init(elev=25, azim=45)
 
